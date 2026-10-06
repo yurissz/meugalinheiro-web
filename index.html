@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600&family=Inter:wght@400;500&display=swap" rel="stylesheet" />
+    <title>Meu Galinheiro — gestão simples da criação</title>
+    <meta
+      name="description"
+      content="Registre vendas, gastos, mortalidade e vacina da sua criação de poedeiras em poucos toques, e saiba se valeu a pena no fim do mês — sem planilha."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Meu Galinheiro" />
+    <meta property="og:title" content="Meu Galinheiro — gestão simples da criação" />
+    <meta
+      property="og:description"
+      content="Registre vendas, gastos, mortalidade e vacina da sua criação de poedeiras em poucos toques, e saiba se valeu a pena no fim do mês — sem planilha."
+    />
+    <!--
+      __SITE_URL__ é trocado no build pelo valor de VITE_SITE_URL (ver vite.config.ts).
+      WhatsApp e Facebook não resolvem caminho relativo nem renderizam SVG — sem URL
+      absoluta de um PNG/JPG, o link compartilhado aparece sem imagem.
+    -->
+    <meta property="og:url" content="__SITE_URL__/" />
+    <meta property="og:image" content="__SITE_URL__/og.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Meu Galinheiro — gestão simples da criação" />
+    <meta property="og:locale" content="pt_BR" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content="__SITE_URL__/og.png" />
+    <meta name="theme-color" content="#123b2d" />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

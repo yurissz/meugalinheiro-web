@@ -1,0 +1,83 @@
+@import "tailwindcss";
+
+/*
+ * Tokens extraídos de reference/meu-galinheiro-prototipo.html.
+ * Cada --color-* e --radius-* vira uma classe Tailwind automaticamente:
+ * --color-verde  -> bg-verde, text-verde, border-verde...
+ * --radius-app   -> rounded-app
+ * --font-heading -> font-heading
+ */
+@theme {
+  --color-verde: #1e5c46;
+  --color-verde-escuro: #123b2d;
+  --color-verde-claro: #e3f0ea;
+  --color-palha: #f5eedc;
+  --color-palha-escura: #eae0c8;
+  --color-gema: #e8a13d;
+  --color-gema-bg: #fbf0dc;
+  --color-gema-texto: #8a5a10;
+  --color-terra: #b0492b;
+  --color-terra-bg: #f9e9e3;
+  --color-tinta: #26241f;
+  --color-cinza: #6b675e;
+  /* Era #a5a196: 2.6:1 no branco, sumia no sol. Agora 4.7:1, dentro do WCAG AA.
+     Para desenho/ícone decorativo (não texto), use cinza-tenue. */
+  --color-cinza-claro: #78746a;
+  --color-cinza-tenue: #a5a196;
+  --color-borda: #e2dccb;
+
+  --radius-app: 10px;
+
+  --font-heading: "Sora", sans-serif;
+  --font-sans: "Inter", sans-serif;
+}
+
+body {
+  font-family: var(--font-sans);
+  background: var(--color-palha);
+  color: var(--color-tinta);
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-heading);
+}
+
+/*
+ * Scroll vertical mais discreto pra containers com altura limitada (listas longas
+ * dentro de um card, dropdown de busca). Fica fino, some quando não precisa.
+ */
+.scroll-fino {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-cinza-tenue) transparent;
+  scroll-behavior: smooth;
+}
+
+.scroll-fino::-webkit-scrollbar {
+  width: 7px;
+}
+
+.scroll-fino::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scroll-fino::-webkit-scrollbar-thumb {
+  background-color: var(--color-cinza-tenue);
+  border-radius: 999px;
+}
+
+.scroll-fino::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-cinza);
+}
+
+@keyframes surgir {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

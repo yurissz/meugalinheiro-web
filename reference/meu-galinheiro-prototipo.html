@@ -1,0 +1,950 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Meu Galinheiro — Protótipo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --verde: #1E5C46;
+  --verde-escuro: #123B2D;
+  --verde-claro: #E3F0EA;
+  --palha: #F5EEDC;
+  --palha-escura: #EAE0C8;
+  --gema: #E8A13D;
+  --gema-bg: #FBF0DC;
+  --gema-texto: #8A5A10;
+  --terra: #B0492B;
+  --terra-bg: #F9E9E3;
+  --tinta: #26241F;
+  --cinza: #6B675E;
+  --cinza-claro: #A5A196;
+  --branco: #FFFFFF;
+  --borda: #E2DCCB;
+  --radius: 10px;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: 'Inter', sans-serif;
+  background: var(--palha);
+  color: var(--tinta);
+  font-size: 14px;
+  min-height: 100vh;
+}
+h1, h2, h3, .display { font-family: 'Sora', sans-serif; }
+
+.app { display: flex; min-height: 100vh; }
+
+/* ---------- Sidebar ---------- */
+.sidebar {
+  width: 232px;
+  background: var(--verde-escuro);
+  color: #fff;
+  padding: 28px 0;
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+}
+.logo {
+  display: flex; align-items: center; gap: 10px;
+  padding: 0 24px 28px;
+}
+.logo-crista { flex-shrink: 0; }
+.logo-name { font-family: 'Sora'; font-weight: 600; font-size: 16px; line-height: 1.2; }
+.logo-sub { font-size: 10.5px; color: #9DBAAC; font-weight: 400; }
+
+.nav { display: flex; flex-direction: column; gap: 2px; padding: 0 12px; }
+.nav-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 11px 14px;
+  border-radius: 8px;
+  color: #C4D6CC;
+  cursor: pointer;
+  font-size: 13.5px;
+  border: none; background: transparent;
+  font-family: 'Inter'; text-align: left;
+  transition: background .15s;
+}
+.nav-item:hover { background: rgba(255,255,255,.07); }
+.nav-item.active { background: var(--verde); color: #fff; font-weight: 500; }
+.nav-item svg { width: 18px; height: 18px; flex-shrink: 0; }
+
+.sidebar-footer { margin-top: auto; padding: 16px 24px 0; font-size: 11px; color: #7FA391; }
+
+/* ---------- Hambúrguer e overlay (só mobile) ---------- */
+.hamburger {
+  display: none;
+  background: transparent;
+  border: 1px solid rgba(255,255,255,.16);
+  cursor: pointer;
+  padding: 0; border-radius: 9px;
+  flex-direction: column; gap: 5px; align-items: center; justify-content: center;
+  width: 44px; height: 44px;
+  transition: background .15s, border-color .15s;
+}
+.hamburger:active { background: rgba(255,255,255,.12); border-color: rgba(255,255,255,.3); }
+.hamburger:focus-visible { outline: 2px solid var(--gema); outline-offset: 2px; }
+.hamburger:focus:not(:focus-visible) { outline: none; }
+.hamburger span {
+  display: block; width: 20px; height: 2px;
+  background: #fff; border-radius: 2px;
+  transition: transform .28s cubic-bezier(.4,0,.2,1), opacity .18s ease, background .2s;
+}
+.hamburger.open { border-color: transparent; }
+.hamburger.open span { background: var(--gema); }
+.hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+.hamburger.open span:nth-child(2) { opacity: 0; transform: scaleX(.4); }
+.hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+.overlay {
+  position: fixed; inset: 0;
+  background: rgba(18, 59, 45, .55);
+  backdrop-filter: blur(2px);
+  z-index: 45;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity .25s ease, visibility .25s;
+}
+.overlay.show { opacity: 1; visibility: visible; pointer-events: auto; }
+
+/* Cabeçalho e rodapé internos do drawer (só aparecem no mobile) */
+.drawer-head, .drawer-foot { display: none; }
+
+/* ---------- Main ---------- */
+.main { flex: 1; padding: 32px 40px 60px; max-width: 1200px; }
+.screen { display: none; }
+.screen.active { display: block; animation: fadein .2s ease; }
+@keyframes fadein { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+
+.topbar { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 26px; }
+.topbar h1 { font-size: 22px; font-weight: 600; }
+.topbar .sub { color: var(--cinza); font-size: 13px; margin-top: 4px; }
+
+/* ---------- Cards e grids ---------- */
+.grid { display: grid; gap: 14px; }
+.g4 { grid-template-columns: repeat(4, 1fr); }
+.g3 { grid-template-columns: repeat(3, 1fr); }
+.g2 { grid-template-columns: repeat(2, 1fr); }
+
+.card {
+  background: var(--branco);
+  border: 1px solid var(--borda);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+}
+.metric-label { font-size: 12px; color: var(--cinza); margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
+.metric-value { font-family: 'Sora'; font-size: 24px; font-weight: 600; }
+.metric-hint { font-size: 11.5px; color: var(--cinza-claro); margin-top: 4px; }
+.pos { color: var(--verde); }
+.neg { color: var(--terra); }
+
+.alert {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--gema-bg);
+  border: 1px solid #EFD9AE;
+  color: var(--gema-texto);
+  border-radius: var(--radius);
+  padding: 13px 16px;
+  font-size: 13px;
+  margin-bottom: 16px;
+  cursor: pointer;
+}
+.alert.danger { background: var(--terra-bg); border-color: #EBC2B3; color: var(--terra); }
+.alert strong { font-weight: 600; }
+
+.section-title { font-size: 15px; font-weight: 600; margin: 26px 0 12px; display: flex; justify-content: space-between; align-items: center; }
+
+/* ---------- Botões ---------- */
+.btn {
+  font-family: 'Inter'; font-size: 13px;
+  padding: 10px 18px;
+  border-radius: 8px;
+  border: 1px solid var(--borda);
+  background: var(--branco);
+  color: var(--tinta);
+  cursor: pointer;
+  transition: all .15s;
+}
+.btn:hover { border-color: var(--cinza-claro); }
+.btn:active { transform: scale(.98); }
+.btn.primary { background: var(--verde); border-color: var(--verde); color: #fff; font-weight: 500; }
+.btn.primary:hover { background: #1A4F3C; }
+.btn.sm { padding: 7px 12px; font-size: 12px; }
+.btn.block { width: 100%; }
+
+/* ---------- Tabelas ---------- */
+table { width: 100%; border-collapse: collapse; }
+th {
+  text-align: left; font-size: 11.5px; color: var(--cinza);
+  font-weight: 500; text-transform: uppercase; letter-spacing: .04em;
+  padding: 10px 14px; border-bottom: 1px solid var(--borda);
+}
+td { padding: 13px 14px; border-bottom: 1px solid #F0EBDD; font-size: 13.5px; }
+tr:last-child td { border-bottom: none; }
+tbody tr { transition: background .1s; }
+tbody tr:hover { background: #FBF8F0; }
+.table-card { background: var(--branco); border: 1px solid var(--borda); border-radius: var(--radius); overflow: hidden; }
+
+.badge {
+  display: inline-flex; align-items: center;
+  font-size: 11.5px; font-weight: 500;
+  padding: 3px 10px; border-radius: 20px;
+}
+.badge.ok { background: var(--verde-claro); color: var(--verde); }
+.badge.warn { background: var(--gema-bg); color: var(--gema-texto); }
+.badge.bad { background: var(--terra-bg); color: var(--terra); }
+
+/* ---------- Formulários ---------- */
+label { display: block; font-size: 12.5px; color: var(--cinza); margin-bottom: 5px; font-weight: 500; }
+input, select, textarea {
+  width: 100%;
+  font-family: 'Inter'; font-size: 13.5px;
+  padding: 10px 12px;
+  border: 1px solid var(--borda);
+  border-radius: 8px;
+  background: var(--branco);
+  color: var(--tinta);
+  outline: none;
+  transition: border .15s;
+}
+input:focus, select:focus, textarea:focus { border-color: var(--verde); box-shadow: 0 0 0 3px var(--verde-claro); }
+.field { margin-bottom: 16px; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+.seg {
+  display: flex; gap: 4px;
+  background: var(--palha-escura);
+  border-radius: 9px; padding: 4px;
+  margin-bottom: 20px;
+}
+.seg button {
+  flex: 1; border: none; background: transparent;
+  font-family: 'Inter'; font-size: 12.5px;
+  padding: 9px 0; border-radius: 6px;
+  color: var(--cinza); cursor: pointer;
+}
+.seg button.active { background: var(--branco); color: var(--tinta); font-weight: 500; }
+
+.stepper { display: flex; align-items: center; gap: 14px; }
+.stepper button {
+  width: 42px; height: 42px;
+  border-radius: 9px; border: 1px solid var(--borda);
+  background: var(--branco); font-size: 18px; cursor: pointer;
+}
+.stepper span { font-family: 'Sora'; font-size: 22px; font-weight: 600; min-width: 34px; text-align: center; }
+
+/* ---------- Barras de produção ---------- */
+.bars { display: flex; align-items: flex-end; gap: 8px; height: 120px; padding-top: 10px; }
+.bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; height: 100%; justify-content: flex-end; }
+.bar { width: 100%; max-width: 42px; background: var(--verde); border-radius: 5px 5px 0 0; min-height: 4px; }
+.bar.today { background: var(--gema); }
+.bar-label { font-size: 10.5px; color: var(--cinza-claro); }
+.bar-value { font-size: 10.5px; color: var(--cinza); font-weight: 500; }
+
+/* ---------- Toast ---------- */
+.toast {
+  position: fixed; bottom: 24px; right: 24px;
+  background: var(--verde-escuro); color: #fff;
+  padding: 13px 20px; border-radius: 9px;
+  font-size: 13px; opacity: 0; pointer-events: none;
+  transform: translateY(8px);
+  transition: all .25s ease;
+  z-index: 50;
+}
+.toast.show { opacity: 1; transform: none; }
+
+.empty { text-align: center; color: var(--cinza-claro); padding: 30px 0; font-size: 13px; }
+
+.lote-fase { font-size: 11px; color: var(--cinza-claro); }
+
+.two-col { display: grid; grid-template-columns: 1.4fr 1fr; gap: 16px; align-items: start; }
+
+.info-line { display: flex; justify-content: space-between; padding: 9px 0; border-bottom: 1px solid #F0EBDD; font-size: 13px; }
+.info-line:last-child { border-bottom: none; }
+.info-line .k { color: var(--cinza); }
+.info-line .v { font-weight: 500; }
+
+/* ============ RESPONSIVO ============ */
+
+/* --- Tablet: sidebar vira barra superior com rótulos --- */
+@media (max-width: 1024px) {
+  .app { flex-direction: column; }
+  .sidebar {
+    width: 100%; height: auto; position: sticky; top: 0; z-index: 40;
+    flex-direction: row; align-items: center; gap: 8px;
+    padding: 10px 16px;
+  }
+  .logo { padding: 0 14px 0 0; border-right: 1px solid rgba(255,255,255,.12); margin-right: 4px; }
+  .logo-sub { display: none; }
+  .logo-name { font-size: 14.5px; }
+  .nav {
+    flex-direction: row; padding: 0; gap: 4px;
+    overflow-x: auto; scrollbar-width: none; flex: 1;
+  }
+  .nav::-webkit-scrollbar { display: none; }
+  .nav-item { padding: 9px 13px; white-space: nowrap; font-size: 13px; }
+  .sidebar-footer { display: none; }
+  .main { padding: 24px 24px 60px; max-width: 100%; }
+  .two-col { grid-template-columns: 1fr; }
+}
+
+/* --- Mobile: menu hambúrguer com drawer lateral --- */
+@media (max-width: 720px) {
+  /* A sidebar cria contexto de empilhamento (sticky + z-index), então ela
+     precisa ficar acima do overlay para o drawer filho ser clicável. */
+  .sidebar { padding: 10px 16px 10px 12px; justify-content: flex-start; z-index: 46; }
+  .logo { padding: 0; border-right: none; margin: 0; }
+  .hamburger { display: flex; position: relative; z-index: 3; order: -1; margin-right: 12px; }
+
+  .nav {
+    position: fixed; top: 0; left: 0; bottom: 0;
+    width: 280px; max-width: 86vw;
+    background: var(--verde-escuro);
+    flex-direction: column; gap: 3px;
+    padding: 0 14px 18px;
+    z-index: 2;
+    transform: translateX(-102%);
+    transition: transform .3s cubic-bezier(.4,0,.2,1);
+    overflow-y: auto;
+    box-shadow: 10px 0 34px rgba(0,0,0,.28);
+  }
+  .nav.open { transform: translateX(0); }
+
+  /* Cabeçalho do drawer: mesma marca da barra superior */
+  .drawer-head {
+    display: flex; align-items: center; gap: 10px;
+    padding: 22px 4px 18px 56px;
+    margin-bottom: 8px;
+    border-bottom: 1px solid rgba(255,255,255,.1);
+  }
+  .drawer-head .dh-name { font-family: 'Sora'; font-weight: 600; font-size: 15px; color: #fff; line-height: 1.2; }
+  .drawer-head .dh-sub { font-size: 10.5px; color: #9DBAAC; }
+
+  .nav-item {
+    padding: 14px 14px; font-size: 15px; gap: 14px;
+    border-radius: 9px;
+    position: relative;
+  }
+  .nav-item svg { width: 20px; height: 20px; }
+  /* Item ativo com a marca gema, igual ao destaque "hoje" dos gráficos */
+  .nav-item.active { background: var(--verde); color: #fff; }
+  .nav-item.active::before {
+    content: ""; position: absolute; left: 0; top: 12px; bottom: 12px;
+    width: 3px; border-radius: 0 3px 3px 0; background: var(--gema);
+  }
+
+  /* Rodapé do drawer */
+  .drawer-foot {
+    display: block;
+    margin-top: auto; padding: 16px 6px 4px;
+    border-top: 1px solid rgba(255,255,255,.1);
+    font-size: 11.5px; color: #7FA391; line-height: 1.5;
+  }
+
+  .main { padding: 20px 16px 50px; }
+  .topbar { flex-direction: column; align-items: stretch; gap: 12px; margin-bottom: 20px; }
+  .topbar h1 { font-size: 19px; }
+  .topbar .btn { width: 100%; }
+
+  .g4, .g3, .g2 { grid-template-columns: repeat(2, 1fr); }
+  .form-row { grid-template-columns: 1fr; }
+  .card { padding: 15px 16px; }
+  .metric-value { font-size: 21px; }
+  .section-title { font-size: 14px; margin: 22px 0 10px; }
+
+  .table-card { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .table-card table { min-width: 520px; }
+
+  .btn { padding: 12px 18px; }
+  .stepper button { width: 48px; height: 48px; font-size: 20px; }
+  input, select { padding: 12px; font-size: 15px; }
+
+  .seg { flex-wrap: wrap; }
+  .seg button { flex: 1 1 45%; padding: 10px 0; }
+
+  .toast { left: 16px; right: 16px; text-align: center; }
+  .bars { height: 96px; gap: 5px; }
+  .bar-label, .bar-value { font-size: 9.5px; }
+}
+
+/* --- Telas pequenas: métricas em coluna única --- */
+@media (max-width: 420px) {
+  .g4, .g3, .g2 { grid-template-columns: 1fr; }
+  .bars { gap: 3px; }
+  .bar-value { display: none; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+<aside class="sidebar">
+  <div class="logo">
+    <svg class="logo-crista" width="30" height="26" viewBox="0 0 40 34" aria-hidden="true"><path d="M4 32 C4 20 6 12 10 12 C13 12 14 17 14 17 C14 8 17 3 21 3 C25 3 26 9 26 9 C27 4 30 6 32 10 C35 16 36 24 36 32 Z" fill="#E8A13D"/></svg>
+    <div>
+      <div class="logo-name">Meu Galinheiro</div>
+      <div class="logo-sub">gestão simples da criação</div>
+    </div>
+  </div>
+  <button class="hamburger" id="hamburger" aria-label="Abrir menu" aria-expanded="false" aria-controls="nav">
+    <span></span><span></span><span></span>
+  </button>
+  <nav class="nav" id="nav">
+    <div class="drawer-head">
+      <svg width="26" height="22" viewBox="0 0 40 34" aria-hidden="true"><path d="M4 32 C4 20 6 12 10 12 C13 12 14 17 14 17 C14 8 17 3 21 3 C25 3 26 9 26 9 C27 4 30 6 32 10 C35 16 36 24 36 32 Z" fill="#E8A13D"/></svg>
+      <div>
+        <div class="dh-name">Meu Galinheiro</div>
+        <div class="dh-sub">gestão simples da criação</div>
+      </div>
+    </div>
+    <button class="nav-item active" data-screen="dashboard">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 12l9-8 9 8"/><path d="M5 10v10h5v-6h4v6h5V10"/></svg>
+      <span>Início</span>
+    </button>
+    <button class="nav-item" data-screen="lotes">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="6" rx="1.5"/><rect x="3" y="14" width="18" height="6" rx="1.5"/></svg>
+      <span>Lotes</span>
+    </button>
+    <button class="nav-item" data-screen="registro">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>
+      <span>Novo registro</span>
+    </button>
+    <button class="nav-item" data-screen="producao">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20V10M10 20V4M16 20v-9M22 20H2"/></svg>
+      <span>Produção</span>
+    </button>
+    <button class="nav-item" data-screen="financeiro">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M15 9.5c0-1.1-1.3-2-3-2s-3 .9-3 2 1.3 1.7 3 2 3 .9 3 2-1.3 2-3 2-3-.9-3-2"/></svg>
+      <span>Financeiro</span>
+    </button>
+    <button class="nav-item" data-screen="vacinas">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 2l4 4M14 4l6 6M12 6l6 6-8 8H6v-4l6-6zM3 21l3-3"/></svg>
+      <span>Vacinação</span>
+    </button>
+    <div class="drawer-foot">João · Feira de Santana<br>Protótipo v0.1</div>
+  </nav>
+  <div class="sidebar-footer">Protótipo v0.1 · João, Feira de Santana</div>
+</aside>
+
+<main class="main">
+
+<!-- ============ DASHBOARD ============ -->
+<section class="screen active" id="screen-dashboard">
+  <div class="topbar">
+    <div>
+      <h1>Bom dia, João</h1>
+      <div class="sub">Segunda-feira, 3 de agosto · resumo de julho</div>
+    </div>
+    <button class="btn primary" onclick="go('registro')">+ Novo registro</button>
+  </div>
+
+  <div class="alert" onclick="go('vacinas')">
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z"/></svg>
+    <div><strong>Vacina de Newcastle do Lote 2 vence em 3 dias.</strong> Toque para ver o calendário.</div>
+  </div>
+
+  <div class="grid g4">
+    <div class="card">
+      <div class="metric-label">Lucro do mês</div>
+      <div class="metric-value pos" id="m-lucro">R$ 1.240</div>
+      <div class="metric-hint">receitas − despesas de julho</div>
+    </div>
+    <div class="card">
+      <div class="metric-label">Mortalidade do mês</div>
+      <div class="metric-value" id="m-mort">1,2%</div>
+      <div class="metric-hint">dentro do padrão esperado</div>
+    </div>
+    <div class="card">
+      <div class="metric-label">Taxa de postura</div>
+      <div class="metric-value">86%</div>
+      <div class="metric-hint">ovos por ave por dia</div>
+    </div>
+    <div class="card">
+      <div class="metric-label">Aves ativas</div>
+      <div class="metric-value" id="m-aves">356</div>
+      <div class="metric-hint">em 3 lotes</div>
+    </div>
+  </div>
+
+  <div class="section-title">Coleta de ovos — últimos 7 dias</div>
+  <div class="card">
+    <div class="bars" id="dash-bars"></div>
+  </div>
+
+  <div class="two-col" style="margin-top:16px">
+    <div>
+      <div class="section-title" style="margin-top:0">Últimos registros <button class="btn sm" onclick="go('registro')">registrar</button></div>
+      <div class="table-card">
+        <table>
+          <thead><tr><th>Data</th><th>Tipo</th><th>Lote</th><th>Detalhe</th></tr></thead>
+          <tbody id="dash-registros"></tbody>
+        </table>
+      </div>
+    </div>
+    <div>
+      <div class="section-title" style="margin-top:0">Próximas vacinas <button class="btn sm" onclick="go('vacinas')">ver todas</button></div>
+      <div class="card" id="dash-vacinas" style="padding:8px 20px"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ LOTES ============ -->
+<section class="screen" id="screen-lotes">
+  <div class="topbar">
+    <div>
+      <h1>Meus lotes</h1>
+      <div class="sub">Cada lote agrupa aves da mesma idade</div>
+    </div>
+    <button class="btn primary" onclick="toggleNovoLote()">+ Novo lote</button>
+  </div>
+
+  <div class="card" id="form-novo-lote" style="display:none; margin-bottom:18px">
+    <div class="section-title" style="margin-top:0">Cadastrar lote</div>
+    <div class="form-row">
+      <div class="field"><label>Nome do lote</label><input id="nl-nome" placeholder="Lote 4"></div>
+      <div class="field"><label>Data de entrada</label><input id="nl-data" type="date"></div>
+    </div>
+    <div class="form-row">
+      <div class="field"><label>Quantidade inicial</label><input id="nl-qtd" type="number" placeholder="100"></div>
+      <div class="field"><label>Raça</label><input id="nl-raca" placeholder="Lohmann Brown"></div>
+    </div>
+    <button class="btn primary" onclick="salvarLote()">Salvar lote</button>
+    <button class="btn" onclick="toggleNovoLote()">Cancelar</button>
+  </div>
+
+  <div class="table-card">
+    <table>
+      <thead><tr><th>Lote</th><th>Aves</th><th>Idade</th><th>Fase</th><th>Raça</th><th>Status sanitário</th></tr></thead>
+      <tbody id="tabela-lotes"></tbody>
+    </table>
+  </div>
+
+  <div class="section-title">Detalhe do lote selecionado</div>
+  <div class="grid g3" id="lote-detalhe">
+    <div class="card">
+      <div class="metric-label">Mortalidade acumulada</div>
+      <div class="metric-value">2,8%</div>
+      <div class="metric-hint">5 aves desde a entrada</div>
+    </div>
+    <div class="card">
+      <div class="metric-label">Postura média</div>
+      <div class="metric-value">88%</div>
+      <div class="metric-hint">últimos 30 dias</div>
+    </div>
+    <div class="card">
+      <div class="metric-label">Custo por ave</div>
+      <div class="metric-value">R$ 3,80</div>
+      <div class="metric-hint">ração + sanidade / mês</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ NOVO REGISTRO ============ -->
+<section class="screen" id="screen-registro">
+  <div class="topbar">
+    <div>
+      <h1>Novo registro</h1>
+      <div class="sub">O registro do dia a dia leva menos de 30 segundos</div>
+    </div>
+  </div>
+
+  <div class="two-col">
+    <div class="card">
+      <div class="seg" id="seg-registro">
+        <button class="active" data-tipo="mortalidade">Mortalidade</button>
+        <button data-tipo="coleta">Coleta</button>
+        <button data-tipo="venda">Venda</button>
+        <button data-tipo="gasto">Gasto</button>
+      </div>
+
+      <div class="field">
+        <label>Lote</label>
+        <select id="reg-lote"></select>
+      </div>
+
+      <div class="field" id="campo-qtd">
+        <label id="label-qtd">Quantidade de aves</label>
+        <div class="stepper">
+          <button onclick="stepQty(-1)">−</button>
+          <span id="reg-qtd">1</span>
+          <button onclick="stepQty(1)">+</button>
+        </div>
+      </div>
+
+      <div class="field" id="campo-valor" style="display:none">
+        <label id="label-valor">Valor (R$)</label>
+        <input id="reg-valor" type="number" placeholder="0,00" step="0.01">
+      </div>
+
+      <div class="field">
+        <label id="label-extra">Causa (opcional)</label>
+        <input id="reg-extra" placeholder="Ex: doença respiratória">
+      </div>
+
+      <button class="btn primary block" onclick="salvarRegistro()">Salvar registro</button>
+    </div>
+
+    <div class="card">
+      <div class="section-title" style="margin-top:0">Registros de hoje</div>
+      <div id="registros-hoje"><div class="empty">Nenhum registro ainda hoje.<br>O primeiro leva só alguns toques.</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ PRODUÇÃO ============ -->
+<section class="screen" id="screen-producao">
+  <div class="topbar">
+    <div>
+      <h1>Produção</h1>
+      <div class="sub">Coleta de ovos e taxa de postura por lote</div>
+    </div>
+    <button class="btn primary" onclick="go('registro')">+ Registrar coleta</button>
+  </div>
+
+  <div class="grid g3">
+    <div class="card">
+      <div class="metric-label">Ovos hoje</div>
+      <div class="metric-value">308</div>
+      <div class="metric-hint">2 coletas registradas</div>
+    </div>
+    <div class="card">
+      <div class="metric-label">Média diária (30d)</div>
+      <div class="metric-value">305</div>
+      <div class="metric-hint">estável em relação a junho</div>
+    </div>
+    <div class="card">
+      <div class="metric-label">Taxa de postura geral</div>
+      <div class="metric-value pos">86%</div>
+      <div class="metric-hint">acima de 80% é saudável</div>
+    </div>
+  </div>
+
+  <div class="section-title">Últimos 14 dias</div>
+  <div class="card"><div class="bars" id="prod-bars"></div></div>
+
+  <div class="section-title">Postura por lote</div>
+  <div class="table-card">
+    <table>
+      <thead><tr><th>Lote</th><th>Aves</th><th>Média ovos/dia</th><th>Taxa de postura</th><th>Situação</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Lote 1</strong></td><td>176</td><td>158</td><td>90%</td><td><span class="badge ok">Ótima</span></td></tr>
+        <tr><td><strong>Lote 2</strong></td><td>120</td><td>96</td><td>80%</td><td><span class="badge ok">Boa</span></td></tr>
+        <tr><td><strong>Lote 3</strong></td><td>60</td><td>44</td><td>73%</td><td><span class="badge warn">Fase final de postura</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ============ FINANCEIRO ============ -->
+<section class="screen" id="screen-financeiro">
+  <div class="topbar">
+    <div>
+      <h1>Financeiro</h1>
+      <div class="sub">Julho de 2026 · só da criação, separado do dinheiro de casa</div>
+    </div>
+    <button class="btn primary" onclick="go('registro')">+ Venda ou gasto</button>
+  </div>
+
+  <div class="grid g4">
+    <div class="card">
+      <div class="metric-label">Receitas</div>
+      <div class="metric-value pos">R$ 4.180</div>
+      <div class="metric-hint">venda de ovos e aves</div>
+    </div>
+    <div class="card">
+      <div class="metric-label">Despesas</div>
+      <div class="metric-value neg">R$ 2.940</div>
+      <div class="metric-hint">ração é 71% do total</div>
+    </div>
+    <div class="card">
+      <div class="metric-label">Lucro</div>
+      <div class="metric-value pos">R$ 1.240</div>
+      <div class="metric-hint">margem de 30%</div>
+    </div>
+    <div class="card">
+      <div class="metric-label">Custo por ovo</div>
+      <div class="metric-value">R$ 0,32</div>
+      <div class="metric-hint">vendido a R$ 0,45 em média</div>
+    </div>
+  </div>
+
+  <div class="two-col" style="margin-top:20px">
+    <div>
+      <div class="section-title" style="margin-top:0">Movimentações de julho</div>
+      <div class="table-card">
+        <table>
+          <thead><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th style="text-align:right">Valor</th></tr></thead>
+          <tbody>
+            <tr><td>02/08</td><td>Venda feira — 30 dúzias</td><td>Venda de ovos</td><td style="text-align:right" class="pos">+ R$ 405,00</td></tr>
+            <tr><td>01/08</td><td>Ração postura 20 sacos</td><td>Ração</td><td style="text-align:right" class="neg">− R$ 1.680,00</td></tr>
+            <tr><td>30/07</td><td>Venda vizinhos — 12 dúzias</td><td>Venda de ovos</td><td style="text-align:right" class="pos">+ R$ 162,00</td></tr>
+            <tr><td>28/07</td><td>Vacina Newcastle</td><td>Sanidade</td><td style="text-align:right" class="neg">− R$ 240,00</td></tr>
+            <tr><td>26/07</td><td>Venda 8 aves descarte</td><td>Venda de aves</td><td style="text-align:right" class="pos">+ R$ 320,00</td></tr>
+            <tr><td>25/07</td><td>Energia do galpão</td><td>Energia</td><td style="text-align:right" class="neg">− R$ 180,00</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div>
+      <div class="section-title" style="margin-top:0">Onde vai o dinheiro</div>
+      <div class="card">
+        <div class="info-line"><span class="k">Ração</span><span class="v">R$ 2.090 · 71%</span></div>
+        <div class="info-line"><span class="k">Sanidade e vacinas</span><span class="v">R$ 380 · 13%</span></div>
+        <div class="info-line"><span class="k">Energia</span><span class="v">R$ 180 · 6%</span></div>
+        <div class="info-line"><span class="k">Mão de obra avulsa</span><span class="v">R$ 160 · 5%</span></div>
+        <div class="info-line"><span class="k">Outros</span><span class="v">R$ 130 · 5%</span></div>
+      </div>
+      <div class="card" style="margin-top:14px; background: var(--verde-claro); border-color:#C8E0D3">
+        <div style="font-size:12.5px; color: var(--verde); line-height:1.55">
+          <strong>Comparado a junho:</strong> seu lucro subiu R$ 210. A venda de aves de descarte do Lote 3 fez a diferença.
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ VACINAÇÃO ============ -->
+<section class="screen" id="screen-vacinas">
+  <div class="topbar">
+    <div>
+      <h1>Vacinação</h1>
+      <div class="sub">Calendário gerado pela idade de cada lote</div>
+    </div>
+  </div>
+
+  <div class="alert danger">
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z"/></svg>
+    <div><strong>Newcastle do Lote 2 vence em 3 dias (06/08).</strong> Aves com 14 semanas — não deixe passar.</div>
+  </div>
+
+  <div class="section-title" style="margin-top:0">Próximas aplicações</div>
+  <div class="table-card">
+    <table>
+      <thead><tr><th>Lote</th><th>Vacina</th><th>Prevista para</th><th>Status</th><th></th></tr></thead>
+      <tbody id="tabela-vacinas"></tbody>
+    </table>
+  </div>
+
+  <div class="section-title">Histórico aplicado</div>
+  <div class="table-card">
+    <table>
+      <thead><tr><th>Lote</th><th>Vacina</th><th>Aplicada em</th></tr></thead>
+      <tbody>
+        <tr><td>Lote 2</td><td>Gumboro (reforço)</td><td>12/07/2026</td></tr>
+        <tr><td>Lote 3</td><td>Bronquite infecciosa</td><td>28/06/2026</td></tr>
+        <tr><td>Lote 1</td><td>Newcastle (reforço)</td><td>15/06/2026</td></tr>
+        <tr><td>Lote 2</td><td>Marek</td><td>02/05/2026</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+</main>
+</div>
+
+<div class="overlay" id="overlay"></div>
+<div class="toast" id="toast">Registro salvo</div>
+
+<script>
+/* ---------- Estado ---------- */
+const lotes = [
+  { nome: "Lote 1", aves: 176, idade: "8 meses", fase: "Pico de postura", raca: "Lohmann Brown", status: "ok" },
+  { nome: "Lote 2", aves: 120, idade: "14 semanas", fase: "Recria", raca: "Isa Brown", status: "warn" },
+  { nome: "Lote 3", aves: 60, idade: "16 meses", fase: "Final de postura", raca: "Embrapa 051", status: "ok" },
+];
+
+const vacinas = [
+  { lote: "Lote 2", vacina: "Newcastle", data: "06/08/2026", status: "warn", label: "Vence em 3 dias" },
+  { lote: "Lote 1", vacina: "Gumboro (reforço)", data: "20/08/2026", status: "ok", label: "Em dia" },
+  { lote: "Lote 3", vacina: "Bronquite", data: "02/09/2026", status: "ok", label: "Em dia" },
+  { lote: "Lote 2", vacina: "Bouba aviária", data: "15/09/2026", status: "ok", label: "Em dia" },
+];
+
+const registrosIniciais = [
+  { data: "03/08", tipo: "Coleta", lote: "Lote 1", detalhe: "162 ovos" },
+  { data: "03/08", tipo: "Coleta", lote: "Lote 2", detalhe: "98 ovos" },
+  { data: "02/08", tipo: "Venda", lote: "—", detalhe: "R$ 405,00 · feira" },
+  { data: "02/08", tipo: "Mortalidade", lote: "Lote 3", detalhe: "1 ave · idade" },
+  { data: "01/08", tipo: "Gasto", lote: "—", detalhe: "R$ 1.680,00 · ração" },
+];
+
+const producao7 = [
+  { dia: "Seg", v: 298 }, { dia: "Ter", v: 310 }, { dia: "Qua", v: 305 },
+  { dia: "Qui", v: 300 }, { dia: "Sex", v: 312 }, { dia: "Sáb", v: 296 }, { dia: "Hoje", v: 308 },
+];
+const producao14 = [
+  282, 290, 301, 295, 288, 299, 304, 298, 310, 305, 300, 312, 296, 308
+];
+
+let tipoRegistro = "mortalidade";
+let qtd = 1;
+
+/* ---------- Menu hambúrguer ---------- */
+const nav = document.getElementById("nav");
+const hamburger = document.getElementById("hamburger");
+const overlay = document.getElementById("overlay");
+
+function abrirMenu() {
+  nav.classList.add("open");
+  hamburger.classList.add("open");
+  overlay.classList.add("show");
+  hamburger.setAttribute("aria-expanded", "true");
+  hamburger.setAttribute("aria-label", "Fechar menu");
+  document.body.style.overflow = "hidden";
+}
+function fecharMenu() {
+  nav.classList.remove("open");
+  hamburger.classList.remove("open");
+  overlay.classList.remove("show");
+  hamburger.setAttribute("aria-expanded", "false");
+  hamburger.setAttribute("aria-label", "Abrir menu");
+  document.body.style.overflow = "";
+}
+hamburger.addEventListener("click", () => {
+  nav.classList.contains("open") ? fecharMenu() : abrirMenu();
+});
+overlay.addEventListener("click", fecharMenu);
+document.addEventListener("keydown", e => { if (e.key === "Escape") fecharMenu(); });
+window.addEventListener("resize", () => { if (window.innerWidth > 720) fecharMenu(); });
+
+/* ---------- Navegação ---------- */
+function go(name) {
+  document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+  document.getElementById("screen-" + name).classList.add("active");
+  document.querySelectorAll(".nav-item").forEach(b => b.classList.toggle("active", b.dataset.screen === name));
+  fecharMenu();
+  window.scrollTo({ top: 0 });
+}
+document.querySelectorAll(".nav-item").forEach(b => b.addEventListener("click", () => go(b.dataset.screen)));
+
+/* ---------- Dashboard ---------- */
+function renderBars(elId, dados, labels) {
+  const el = document.getElementById(elId);
+  const max = Math.max(...dados.map(d => typeof d === "object" ? d.v : d));
+  el.innerHTML = dados.map((d, i) => {
+    const v = typeof d === "object" ? d.v : d;
+    const label = typeof d === "object" ? d.dia : (labels ? labels[i] : "");
+    const isToday = label === "Hoje" || i === dados.length - 1;
+    return '<div class="bar-col"><div class="bar-value">' + v + '</div><div class="bar ' + (isToday ? "today" : "") + '" style="height:' + Math.round(v / max * 100) + '%"></div><div class="bar-label">' + label + '</div></div>';
+  }).join("");
+}
+renderBars("dash-bars", producao7);
+renderBars("prod-bars", producao14.map((v, i) => ({ dia: i === 13 ? "Hoje" : (14 - i) + "d", v })));
+
+function renderDashRegistros() {
+  document.getElementById("dash-registros").innerHTML = registrosIniciais.slice(0, 5).map(r =>
+    "<tr><td>" + r.data + "</td><td>" + r.tipo + "</td><td>" + r.lote + "</td><td>" + r.detalhe + "</td></tr>"
+  ).join("");
+}
+renderDashRegistros();
+
+document.getElementById("dash-vacinas").innerHTML = vacinas.slice(0, 3).map(v =>
+  '<div class="info-line"><span><strong>' + v.lote + '</strong> · ' + v.vacina + '<div class="lote-fase">' + v.data + '</div></span><span class="badge ' + v.status + '">' + v.label + '</span></div>'
+).join("");
+
+/* ---------- Lotes ---------- */
+function renderLotes() {
+  document.getElementById("tabela-lotes").innerHTML = lotes.map(l =>
+    "<tr><td><strong>" + l.nome + "</strong></td><td>" + l.aves + "</td><td>" + l.idade + "</td><td>" + l.fase + "</td><td>" + l.raca + "</td><td><span class='badge " + l.status + "'>" + (l.status === "ok" ? "Em dia" : "Vacina próxima") + "</span></td></tr>"
+  ).join("");
+  document.getElementById("m-aves").textContent = lotes.reduce((s, l) => s + l.aves, 0);
+  const sel = document.getElementById("reg-lote");
+  sel.innerHTML = lotes.map(l => "<option>" + l.nome + "</option>").join("") + "<option>Sem lote (geral)</option>";
+}
+renderLotes();
+
+function toggleNovoLote() {
+  const f = document.getElementById("form-novo-lote");
+  f.style.display = f.style.display === "none" ? "block" : "none";
+}
+function salvarLote() {
+  const nome = document.getElementById("nl-nome").value || ("Lote " + (lotes.length + 1));
+  const qtd = parseInt(document.getElementById("nl-qtd").value) || 100;
+  const raca = document.getElementById("nl-raca").value || "Não informada";
+  lotes.push({ nome, aves: qtd, idade: "Recém-chegado", fase: "Cria", raca, status: "ok" });
+  renderLotes();
+  toggleNovoLote();
+  toast("Lote \"" + nome + "\" cadastrado");
+}
+
+/* ---------- Novo registro ---------- */
+const segCfg = {
+  mortalidade: { qtd: true, valor: false, labelQtd: "Quantidade de aves", extra: "Causa (opcional)", ph: "Ex: doença respiratória" },
+  coleta: { qtd: true, valor: false, labelQtd: "Quantidade de ovos", extra: "Observação (opcional)", ph: "Ex: coleta da tarde" },
+  venda: { qtd: false, valor: true, labelValor: "Valor da venda (R$)", extra: "Comprador (opcional)", ph: "Ex: feira do centro" },
+  gasto: { qtd: false, valor: true, labelValor: "Valor do gasto (R$)", extra: "Categoria", ph: "Ex: ração" },
+};
+document.querySelectorAll("#seg-registro button").forEach(b => {
+  b.addEventListener("click", () => {
+    document.querySelectorAll("#seg-registro button").forEach(x => x.classList.remove("active"));
+    b.classList.add("active");
+    tipoRegistro = b.dataset.tipo;
+    const cfg = segCfg[tipoRegistro];
+    document.getElementById("campo-qtd").style.display = cfg.qtd ? "block" : "none";
+    document.getElementById("campo-valor").style.display = cfg.valor ? "block" : "none";
+    if (cfg.labelQtd) document.getElementById("label-qtd").textContent = cfg.labelQtd;
+    if (cfg.labelValor) document.getElementById("label-valor").textContent = cfg.labelValor;
+    document.getElementById("label-extra").textContent = cfg.extra;
+    document.getElementById("reg-extra").placeholder = cfg.ph;
+    if (tipoRegistro === "coleta") { qtd = 150; } else { qtd = 1; }
+    document.getElementById("reg-qtd").textContent = qtd;
+  });
+});
+function stepQty(d) {
+  const passo = tipoRegistro === "coleta" ? 10 : 1;
+  qtd = Math.max(0, qtd + d * passo);
+  document.getElementById("reg-qtd").textContent = qtd;
+}
+function salvarRegistro() {
+  const lote = document.getElementById("reg-lote").value;
+  const extra = document.getElementById("reg-extra").value;
+  const valor = document.getElementById("reg-valor").value;
+  const nomes = { mortalidade: "Mortalidade", coleta: "Coleta", venda: "Venda", gasto: "Gasto" };
+  let detalhe = "";
+  if (tipoRegistro === "mortalidade") detalhe = qtd + " ave" + (qtd > 1 ? "s" : "") + (extra ? " · " + extra : "");
+  if (tipoRegistro === "coleta") detalhe = qtd + " ovos" + (extra ? " · " + extra : "");
+  if (tipoRegistro === "venda" || tipoRegistro === "gasto") detalhe = "R$ " + (parseFloat(valor || 0)).toFixed(2).replace(".", ",") + (extra ? " · " + extra : "");
+  const novo = { data: "03/08", tipo: nomes[tipoRegistro], lote: tipoRegistro === "venda" || tipoRegistro === "gasto" ? "—" : lote, detalhe };
+  registrosIniciais.unshift(novo);
+  renderDashRegistros();
+
+  const hoje = document.getElementById("registros-hoje");
+  if (hoje.querySelector(".empty")) hoje.innerHTML = "";
+  hoje.insertAdjacentHTML("afterbegin",
+    '<div class="info-line"><span><strong>' + novo.tipo + '</strong> · ' + novo.lote + '</span><span>' + novo.detalhe + '</span></div>');
+
+  document.getElementById("reg-extra").value = "";
+  document.getElementById("reg-valor").value = "";
+  toast("Registro salvo em menos de 30 segundos");
+}
+
+/* ---------- Vacinas ---------- */
+document.getElementById("tabela-vacinas").innerHTML = vacinas.map((v, i) =>
+  "<tr><td><strong>" + v.lote + "</strong></td><td>" + v.vacina + "</td><td>" + v.data + "</td><td><span class='badge " + v.status + "'>" + v.label + "</span></td><td style='text-align:right'><button class='btn sm' onclick='marcarAplicada(this, " + i + ")'>Marcar aplicada</button></td></tr>"
+).join("");
+function marcarAplicada(btn, i) {
+  const row = btn.closest("tr");
+  row.querySelector(".badge").className = "badge ok";
+  row.querySelector(".badge").textContent = "Aplicada hoje";
+  btn.remove();
+  toast(vacinas[i].vacina + " marcada como aplicada");
+}
+
+/* ---------- Toast ---------- */
+let toastTimer;
+function toast(msg) {
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove("show"), 2600);
+}
+</script>
+</body>
+</html>

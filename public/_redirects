@@ -1,0 +1,4 @@
+# App de página única: qualquer rota (/app, /app/lotes...) tem que devolver o index.html,
+# senão a hospedagem procura um arquivo com esse nome e responde 404.
+# Formato da Netlify; a Vercel usa o vercel.json na raiz do projeto.
+/*    /index.html   200
